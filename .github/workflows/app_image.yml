@@ -1,5 +1,5 @@
 ---
-name: Container Base Module
+name: Container App Image
 
 on:
     push:
@@ -7,19 +7,15 @@ on:
             - 'develop'
             - 'main'
         paths:
-            - 'base/**'
-            - 'parent/pom.xml'
-            - '.github/workflows/base_image.yml'
+            - 'src/main/docker/**'
+            - '.github/workflows/app_image.yml'
     pull_request:
         branches:
             - 'develop'
             - 'main'
         paths:
-            - 'base/**'
-            - 'parent/pom.xml'
-            - '.github/workflows/base_image.yml'
-    schedule:
-        - cron: '23 3 * * 0' # Run for 'develop' every Sunday at 03:23 UTC
+            - 'src/main/docker/**'
+            - '.github/workflows/app_image.yml'
 
 env:
     IMAGE_TAG: unstable
@@ -30,7 +26,7 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             contents: read
-            packages: read
+            packages: write
         strategy:
             matrix:
                 jdk: [ '11' ]
@@ -54,20 +50,20 @@ jobs:
                   restore-keys: ${{ runner.os }}-m2
 
             - name: Build base container image with local architecture
-              run: mvn -f base -Pct package
+              run: mvn -Pct package
 
             # Run anything below only if this is not a pull request.
             # Accessing, pushing tags etc. to DockerHub will only succeed in upstream because secrets.
 
-            - if: ${{ github.event_name == 'push' && github.ref_name == 'develop' }}
-              name: Push description to DockerHub
-              uses: peter-evans/dockerhub-description@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
-                  repository: gdcc/base
-                  short-description: "Dataverse Base Container image providing Payara application server and optimized configuration"
-                  readme-filepath: ./base/README.md
+            #- if: ${{ github.event_name == 'push' && github.ref_name == 'develop' }}
+            #  name: Push description to DockerHub
+            #  uses: peter-evans/dockerhub-description@v3
+            #  with:
+            #      username: ${{ secrets.DOCKERHUB_USERNAME }}
+            #      password: ${{ secrets.DOCKERHUB_TOKEN }}
+            #      repository: gdcc/base
+            #      short-description: "Dataverse Base Container image providing Payara application server and optimized configuration"
+            #      readme-filepath: ./base/README.md
 
             - if: ${{ github.event_name != 'pull_request' }}
               name: Log in to the Container registry
@@ -83,5 +79,5 @@ jobs:
               if: ${{ github.ref_name == 'main' }}
               run: echo "IMAGE_TAG=stable" >> $GITHUB_ENV
             - if: ${{ github.event_name != 'pull_request' }}
-              name: Deploy multi-arch base container image to Docker Hub
-              run: mvn -f base -Pct deploy -Dbase.image.tag=${{ env.IMAGE_TAG }} -Ddocker.platforms=linux/amd64,linux/arm64
+              name: Deploy multi-arch application container image to Docker Hub
+              run: mvn -Pct deploy -Dbase.image.tag=${{ env.IMAGE_TAG }} -Ddocker.platforms=linux/amd64,linux/arm64

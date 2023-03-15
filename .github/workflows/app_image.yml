@@ -2,6 +2,7 @@
 name: Container App Image
 
 on:
+    workflow_call:
     push:
         branches:
             - 'develop'

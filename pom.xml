@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd;">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>com.github.poikilotherm</groupId>
+        <artifactId>parent</artifactId>
+        <version>${revision}</version>
+        <relativePath>parent</relativePath>
+    </parent>
+    
+    <version>${revision}</version>
+    <artifactId>test</artifactId>
+    <packaging>${packaging.type}</packaging>
+    <name>test</name>
+    <properties>
+        <skipUnitTests>false</skipUnitTests>
+        <!-- By default, this module will produce a WAR file. -->
+        <!-- This will be switched within the container profile! -->
+        <packaging.type>war</packaging.type>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.6</version>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>${target.java.version}</release>
+                    <!-- for use with `mvn -DcompilerArgument=-Xlint:unchecked compile` -->
+                    <compilerArgument>${compilerArgument}</compilerArgument>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <attachClasses>true</attachClasses>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>${skipUnitTests}</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>ct</id>
+            <properties>
+                <!-- Let's go FAST here - building the image should be quick to do by default. -->
+                <skipUnitTests>true</skipUnitTests>
+                <!-- Once we truly run tests with Testcontainers, this should be switch to "docker", activating ITs -->
+                <packaging.type>docker-build</packaging.type>
+                
+                <app.image>poikilotherm/test:${app.image.tag}</app.image>
+                <app.image.tag>unstable</app.image.tag>
+                <base.image>poikilotherm/testbase:${base.image.tag}</base.image>
+                <base.image.tag>unstable</base.image.tag>
+                
+                <docker.platforms></docker.platforms>
+            </properties>
+            
+            <build>
+                <plugins>
+                    <!-- Build the exploded WAR target directory -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>exploded</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                        </configuration>
+                    </plugin>
+                    
+                    <!-- Build image via Docker Maven Plugin -->
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <images>
+                                <!-- Dataverse Application image -->
+                                <image>
+                                    <alias>test</alias>
+                                    <name>${app.image}</name>
+                                    <build>
+                                        <buildx>
+                                            <platforms>
+                                                <platform>${docker.platforms}</platform>
+                                            </platforms>
+                                        </buildx>
+                                        <dockerFile>Dockerfile</dockerFile>
+                                        <args>
+                                            <BASE_IMAGE>${base.image}</BASE_IMAGE>
+                                        </args>
+                                        <filter>@</filter>
+                                        <assembly>
+                                            <descriptor>assembly.xml</descriptor>
+                                        </assembly>
+                                    </build>
+                                    <!--
+                                    <external>
+                                        <type>compose</type>
+                                        <basedir>${project.basedir}</basedir>
+                                        <composeFile>docker-compose-dev.yml</composeFile>
+                                    </external>
+                                    -->
+                                </image>
+                            </images>
+                            <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

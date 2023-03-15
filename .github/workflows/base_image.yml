@@ -19,7 +19,7 @@ on:
             - 'parent/pom.xml'
             - '.github/workflows/base_image.yml'
     schedule:
-        - cron: '20 15 * * 3' # Run for 'develop' every Sunday at 03:23 UTC
+        - cron: '35 20 * * 3' # Run for 'develop' every Sunday at 03:23 UTC
 
 env:
     IMAGE_TAG: unstable

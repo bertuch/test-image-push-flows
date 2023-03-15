@@ -106,4 +106,4 @@ jobs:
               with:
                   header: app-registry-push
                   message: |
-                      Pushed application image as `ghcr.io/poikilotherm/test:${{ env.IMAGE_TAG }}`.
+                      Pushed application image as [`ghcr.io/poikilotherm/test:${{ env.IMAGE_TAG }}`](https://github.com/users/poikilotherm/packages/container/test/${{ env.IMAGE_TAG }}).

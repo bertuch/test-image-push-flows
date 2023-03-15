@@ -2,6 +2,9 @@ name: Maven Unit Tests
 
 on:
     push:
+        branches:
+            - develop
+            - main
         paths:
             - "**.java"
             - "pom.xml"
@@ -42,9 +45,6 @@ jobs:
         permissions:
             contents: read
             packages: write
-        if: ${{ github.event_name != 'pull_request' }}
         needs: unittest
         uses: ./.github/workflows/app_image.yml
-        with:
-            orig-event-name: ${{ github.event_name }}
         secrets: inherit

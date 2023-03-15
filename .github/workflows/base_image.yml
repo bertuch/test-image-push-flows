@@ -92,3 +92,4 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         needs: build
         uses: ./.github/workflows/app_image.yml
+        secrets: inherit

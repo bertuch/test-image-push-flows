@@ -20,6 +20,8 @@ on:
 
 env:
     IMAGE_TAG: unstable
+    REGISTRY: "" # empty means Docker Hub
+    PLATFORMS: "linux/amd64,linux/arm64"
 
 jobs:
     build:
@@ -67,18 +69,31 @@ jobs:
             #      readme-filepath: ./base/README.md
 
             - if: ${{ github.event_name != 'pull_request' }}
-              name: Log in to the Container registry
+              name: Log in to Docker Hub registry
               uses: docker/login-action@v2
               with:
-                  registry: ${{ env.REGISTRY }}
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
-            - if: ${{ github.event_name != 'pull_request' }}
-              name: Set up QEMU for multi-arch builds
+            - if: ${{ github.event_name == 'pull_request' }}
+              name: Login to Github Container Registry
+              uses: docker/login-action@v2
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Set up QEMU for multi-arch builds
               uses: docker/setup-qemu-action@v2
-            - name: Re-set image tag based on branch
+
+            - name: Re-set image tag based on branch (if main)
               if: ${{ github.ref_name == 'main' }}
               run: echo "IMAGE_TAG=stable" >> $GITHUB_ENV
-            - if: ${{ github.event_name != 'pull_request' }}
-              name: Deploy multi-arch application container image to Docker Hub
-              run: mvn -Pct deploy -Dbase.image.tag=${{ env.IMAGE_TAG }} -Ddocker.platforms=linux/amd64,linux/arm64
+            - name: Re-set image tag and container registry when on PR
+              if: ${{ github.event_name == 'pull_request' }}
+              run: |
+                  echo "IMAGE_TAG=${{ env.GITHUB_REF_NAME }}" >> $GITHUB_ENV
+                  echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
+
+
+            - name: Deploy multi-arch application container image
+              run: mvn -Pct deploy -Dbase.image.tag=${{ env.IMAGE_TAG }} -Ddocker.registry=${{ env.REGISTRY }} -Ddocker.platforms=${{ env.PLATFORMS }}

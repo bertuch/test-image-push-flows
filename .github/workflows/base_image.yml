@@ -89,6 +89,7 @@ jobs:
         permissions:
             contents: read
             packages: write
+            pull-requests: write
         needs: build
         uses: ./.github/workflows/app_image.yml
         secrets: inherit

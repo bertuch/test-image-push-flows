@@ -45,6 +45,7 @@ jobs:
         permissions:
             contents: read
             packages: write
+            pull-requests: write
         needs: unittest
         uses: ./.github/workflows/app_image.yml
         secrets: inherit

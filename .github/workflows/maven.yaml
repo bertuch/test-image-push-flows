@@ -1,0 +1,40 @@
+name: Maven Unit Tests
+
+on:
+    push:
+        paths:
+            - "**.java"
+            - "pom.xml"
+            - "**/pom.xml"
+    pull_request:
+        paths:
+            - "**.java"
+            - "pom.xml"
+            - "**/pom.xml"
+
+jobs:
+    unittest:
+        name: (${{ matrix.status}} / JDK ${{ matrix.jdk }}) Unit Tests
+        strategy:
+            fail-fast: false
+            matrix:
+                jdk: [ '11' ]
+                experimental: [false]
+                status:  ["Stable"]
+        continue-on-error: ${{ matrix.experimental }}
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up JDK ${{ matrix.jdk }}
+              uses: actions/setup-java@v2
+              with:
+                  java-version: ${{ matrix.jdk }}
+                  distribution: 'adopt'
+            - name: Cache Maven packages
+              uses: actions/cache@v2
+              with:
+                  path: ~/.m2
+                  key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+                  restore-keys: ${{ runner.os }}-m2
+            - name: Build with Maven
+              run: mvn -DcompilerArgument=-Xlint:unchecked -Dtarget.java.version=${{ matrix.jdk }} clean test

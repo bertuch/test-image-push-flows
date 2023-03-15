@@ -102,6 +102,9 @@ jobs:
                   echo "IMAGE_TAG=$(echo "$GITHUB_HEAD_REF" | tr '\\/_:&+,;#*' '-')" >> $GITHUB_ENV
                   echo "REGISTRY='-Ddocker.registry=ghcr.io'" >> $GITHUB_ENV
 
+            - run: |
+                echo "$GITHUB_EVENT_NAME"
+
             - name: Deploy multi-arch application container image
               if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_call' && inputs.orig-event-name == 'pull_request') }}
               run: mvn -Pct deploy -Dapp.image.tag=${{ env.IMAGE_TAG }} -Dbase.image.tag=${{ env.BASE_IMAGE_TAG }} ${{ env.REGISTRY }} -Ddocker.platforms=${{ env.PLATFORMS }}

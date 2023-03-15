@@ -42,7 +42,6 @@ jobs:
         permissions:
             contents: read
             packages: write
-        if: ${{ github.event_name != 'pull_request' }}
         needs: unittest
         uses: ./.github/workflows/app_image.yml
         with:

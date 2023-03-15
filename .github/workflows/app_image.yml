@@ -49,7 +49,7 @@ jobs:
                   key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
                   restore-keys: ${{ runner.os }}-m2
 
-            - name: Build base container image with local architecture
+            - name: Build app container image with local architecture
               run: mvn -Pct package
 
             # Run anything below only if this is not a pull request.

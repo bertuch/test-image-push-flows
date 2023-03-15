@@ -20,7 +20,7 @@ on:
 
 env:
     IMAGE_TAG: unstable
-    REGISTRY: "index.docker.io"
+    REGISTRY: "" # Empty means default to Docker Hub
     PLATFORMS: "linux/amd64,linux/arm64"
 
 jobs:
@@ -92,7 +92,7 @@ jobs:
               if: ${{ github.event_name == 'pull_request' }}
               run: |
                   echo "IMAGE_TAG=${{ env.GITHUB_REF_NAME }}" >> $GITHUB_ENV
-                  echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
+                  echo "REGISTRY='-Ddocker.registry=ghcr.io'" >> $GITHUB_ENV
 
             - name: Deploy multi-arch application container image
-              run: mvn -Pct deploy -Dbase.image.tag=${{ env.IMAGE_TAG }} -Ddocker.registry=${{ env.REGISTRY }} -Ddocker.platforms=${{ env.PLATFORMS }}
+              run: mvn -Pct deploy -Dbase.image.tag=${{ env.IMAGE_TAG }} ${{ env.REGISTRY }} -Ddocker.platforms=${{ env.PLATFORMS }}

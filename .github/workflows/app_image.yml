@@ -20,7 +20,7 @@ on:
 
 env:
     IMAGE_TAG: unstable
-    REGISTRY: "" # empty means Docker Hub
+    REGISTRY: "docker.io"
     PLATFORMS: "linux/amd64,linux/arm64"
 
 jobs:

@@ -4,16 +4,16 @@ name: Container Base Module
 on:
     push:
         branches:
-            - 'develop'
-            - 'main'
+            - develop
+            - main
         paths:
             - 'base/**'
             - 'parent/pom.xml'
             - '.github/workflows/base_image.yml'
     pull_request:
         branches:
-            - 'develop'
-            - 'main'
+            - develop
+            - main
         paths:
             - 'base/**'
             - 'parent/pom.xml'
@@ -89,9 +89,6 @@ jobs:
         permissions:
             contents: read
             packages: write
-        if: ${{ github.event_name != 'pull_request' }}
         needs: build
         uses: ./.github/workflows/app_image.yml
-        with:
-            orig-event-name: ${{ github.event_name }}
         secrets: inherit

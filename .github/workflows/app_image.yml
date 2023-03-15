@@ -2,14 +2,9 @@
 name: "Application Container Image"
 
 on:
+    # We are deliberately *not* running on push events here to avoid double runs.
+    # Instead, push events will trigger from the base image and maven unit tests via workflow_call.
     workflow_call:
-    push:
-        branches:
-            - develop
-            - main
-        paths:
-            - 'src/main/docker/**'
-            - '.github/workflows/app_image.yml'
     pull_request:
         branches:
             - develop
@@ -56,7 +51,8 @@ jobs:
 
             # Note: Accessing, pushing tags etc. to DockerHub or GHCR will only succeed in upstream because secrets.
 
-            - if: ${{ github.event_name == 'push' && github.ref_name == 'develop' }}
+            # Run this when triggered via push or schedule as reused workflow from base / maven unit tests
+            - if: ${{ github.event_name != 'pull_request' && github.ref_name == 'develop' }}
               name: Push description to DockerHub
               uses: peter-evans/dockerhub-description@v3
               with:

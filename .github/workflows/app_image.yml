@@ -20,6 +20,7 @@ on:
 
 env:
     IMAGE_TAG: unstable
+    BASE_IMAGE_TAG: unstable
     REGISTRY: "" # Empty means default to Docker Hub
     PLATFORMS: "linux/amd64,linux/arm64"
 
@@ -87,12 +88,14 @@ jobs:
 
             - name: Re-set image tag based on branch (if main)
               if: ${{ github.ref_name == 'main' }}
-              run: echo "IMAGE_TAG=stable" >> $GITHUB_ENV
+              run: |
+                  echo "IMAGE_TAG=stable" >> $GITHUB_ENV
+                  echo "BASE_IMAGE_TAG=stable" >> $GITHUB_ENV
             - name: Re-set image tag and container registry when on PR
               if: ${{ github.event_name == 'pull_request' }}
               run: |
-                  echo "IMAGE_TAG=${{ env.GITHUB_REF_NAME }}" >> $GITHUB_ENV
+                  echo "IMAGE_TAG=$(echo "$GITHUB_HEAD_REF" | tr '\\/_:&+,;#*' '-')" >> $GITHUB_ENV
                   echo "REGISTRY='-Ddocker.registry=ghcr.io'" >> $GITHUB_ENV
 
             - name: Deploy multi-arch application container image
-              run: mvn -Pct deploy -Dbase.image.tag=${{ env.IMAGE_TAG }} ${{ env.REGISTRY }} -Ddocker.platforms=${{ env.PLATFORMS }}
+              run: mvn -Pct deploy -Dapp.image.tag=${{ env.IMAGE_TAG }} -Dbase.image.tag=${{ env.BASE_IMAGE_TAG }} ${{ env.REGISTRY }} -Ddocker.platforms=${{ env.PLATFORMS }}

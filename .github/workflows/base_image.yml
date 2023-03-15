@@ -89,8 +89,4 @@ jobs:
         runs-on: ubuntu-latest
         if: ${{ github.event_name != 'pull_request' }}
         needs: build
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v3
-            - name: Build App Image
-              uses: ./.github/workflows/app_image.yml
+        uses: ./.github/workflows/app_image.yml

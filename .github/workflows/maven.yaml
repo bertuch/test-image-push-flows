@@ -38,3 +38,11 @@ jobs:
                   restore-keys: ${{ runner.os }}-m2
             - name: Build with Maven
               run: mvn -DcompilerArgument=-Xlint:unchecked -Dtarget.java.version=${{ matrix.jdk }} clean test
+    trigger-app:
+        permissions:
+            contents: read
+            packages: write
+        if: ${{ github.event_name != 'pull_request' }}
+        needs: unittest
+        uses: ./.github/workflows/app_image.yml
+        secrets: inherit

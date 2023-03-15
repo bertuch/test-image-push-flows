@@ -86,7 +86,6 @@ jobs:
               name: Deploy multi-arch base container image to Docker Hub
               run: mvn -f base -Pct deploy -Dbase.image.tag=${{ env.IMAGE_TAG }} -Ddocker.platforms=linux/amd64,linux/arm64
     trigger-app:
-        runs-on: ubuntu-latest
         if: ${{ github.event_name != 'pull_request' }}
         needs: build
         uses: ./.github/workflows/app_image.yml

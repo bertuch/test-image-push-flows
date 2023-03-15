@@ -99,3 +99,10 @@ jobs:
 
             - name: Deploy multi-arch application container image
               run: mvn -Pct deploy -Dapp.image.tag=${{ env.IMAGE_TAG }} -Dbase.image.tag=${{ env.BASE_IMAGE_TAG }} ${{ env.REGISTRY }} -Ddocker.platforms=${{ env.PLATFORMS }}
+
+            - uses: marocchino/sticky-pull-request-comment@v2
+              if: ${{ github.event_name == 'pull_request' }}
+              with:
+                  header: app-registry-push
+                  message: |
+                      Pushed application image as `ghcr.io/poikilotherm/test:${{ env.IMAGE_TAG }}`.

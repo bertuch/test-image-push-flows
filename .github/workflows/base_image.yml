@@ -62,7 +62,7 @@ jobs:
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
-                  repository: gdcc/base
+                  repository: poikilotherm/testbase
                   short-description: "Dataverse Base Container image providing Payara application server and optimized configuration"
                   readme-filepath: ./base/README.md
 

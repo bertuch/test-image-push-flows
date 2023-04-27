@@ -51,9 +51,7 @@ jobs:
 
     push:
         name: "Package & Publish"
-        permissions:
-            contents: read
-            secrets: read
+        runs-on: ubuntu-latest
         needs: build
         # Only trigger the publication here if this is a push (otherwise we don't have secret access).
         # For pull requests, someone needs to sign off publication via command!

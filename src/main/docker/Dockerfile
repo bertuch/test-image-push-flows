@@ -2,7 +2,7 @@
 ARG BASE_IMAGE="poikilotherm/testbase:unstable"
 FROM $BASE_IMAGE
 
-# TEST EDIT
+# TEST EDIT 1234
 
 # Copy app and deps from assembly in proper layers
 COPY maven/deps /app/WEB-INF/lib

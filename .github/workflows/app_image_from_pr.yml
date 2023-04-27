@@ -1,0 +1,67 @@
+---
+name: "Application Container Image"
+
+on:
+    # We only run the push commands if we are asked to by an issue comment with the correct command.
+    # This workflow is always taken from the default branch and runs in repo context with access to secrets.
+    repository_dispatch:
+        types: [push-image-command]
+
+env:
+    IMAGE_TAG: unstable
+    BASE_IMAGE_TAG: unstable
+    PLATFORMS: "linux/amd64,linux/arm64"
+
+jobs:
+    push:
+        name: "Package & Push Preview"
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+            pull-requests: write
+        # Only run in upstream repo - avoid unnecessary runs in forks
+        if: ${{ github.repository_owner == 'poikilotherm' }}
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+              with:
+                  ref: 'refs/pull/${{ github.event.client_payload.pull_request.number }}/merge'
+            - name: Set up JDK 11
+              uses: actions/setup-java@v3
+              with:
+                  java-version: "11"
+                  distribution: 'adopt'
+            - name: Cache Maven packages
+              uses: actions/cache@v3
+              with:
+                  path: ~/.m2
+                  key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+                  restore-keys: ${{ runner.os }}-m2
+
+            # Note: Accessing, pushing tags etc. to DockerHub or GHCR will only succeed in upstream because secrets.
+
+            - name: Login to Github Container Registry
+              uses: docker/login-action@v2
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Set up QEMU for multi-arch builds
+              uses: docker/setup-qemu-action@v2
+
+            - name: Re-set image tag and container registry when on PR
+              run: |
+                  echo "IMAGE_TAG=$(echo "${{ github.event.client_payload.pull_request.head.ref }}" | tr '\\/_:&+,;#*' '-')" >> $GITHUB_ENV
+
+            - name: Deploy multi-arch application container image
+              run: mvn -Pct deploy -Dapp.image.tag=${{ env.IMAGE_TAG }} -Dbase.image.tag=${{ env.BASE_IMAGE_TAG }} -Ddocker.registry=ghcr.io -Ddocker.platforms=${{ env.PLATFORMS }}
+
+            - uses: marocchino/sticky-pull-request-comment@v2
+              with:
+                  header: app-registry-push
+                  number: ${{ github.event.client_payload.pull_request.number }}
+                  message: |
+                      Pushed application image as [`ghcr.io/poikilotherm/test:${{ env.IMAGE_TAG }}`](https://github.com/users/poikilotherm/packages/container/test).

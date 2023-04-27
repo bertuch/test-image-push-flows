@@ -5,6 +5,9 @@ on:
 jobs:
   dispatch:
     runs-on: ubuntu-latest
+    permissions:
+        pull-requests: write
+
     steps:
       - name: Dispatch
         uses: peter-evans/slash-command-dispatch@v3
